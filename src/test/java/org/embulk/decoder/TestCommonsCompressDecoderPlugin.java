@@ -3,11 +3,14 @@ package org.embulk.decoder;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
 
+import org.embulk.config.Config;
+import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigSource;
 import org.embulk.config.TaskSource;
 import org.embulk.exec.PooledBufferAllocator;
@@ -20,12 +23,23 @@ import org.junit.Test;
 
 public class TestCommonsCompressDecoderPlugin
 {
+    private static final String DEFAULT_FORMAT_CONFIG = "\"\"";
+
     @Mocked
     CommonsCompressDecoderPlugin.PluginTask task;
 
     @Mocked
     TaskSource taskSource;
 
+    @Test
+    public void testPluginTask() throws Exception {
+        Method method = CommonsCompressDecoderPlugin.PluginTask.class.getMethod("getFormat");
+        Config config = method.getAnnotation(Config.class);
+        ConfigDefault configDefault = method.getAnnotation(ConfigDefault.class);
+        
+        Assert.assertEquals("Verify the config name.", "format", config.value());
+        Assert.assertEquals("Verify the default config value.", DEFAULT_FORMAT_CONFIG, configDefault.value());
+    }
 
     @Test
     public void testTransaction(@Mocked final ConfigSource config, @Mocked final DecoderPlugin.Control control)
@@ -57,7 +71,7 @@ public class TestCommonsCompressDecoderPlugin
 
     // sample_0 contains only a directory.
     @Test
-    public void testArchiveInputStreamProviderNoFile(@Mocked final FileInput input) throws Exception
+    public void testOpenForNoFile(@Mocked final FileInput input) throws Exception
     {
         new NonStrictExpectations() {{
             taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
@@ -81,7 +95,7 @@ public class TestCommonsCompressDecoderPlugin
 
     // sample_1.tar contains 1 csv file.
     @Test
-    public void testArchiveInputStreamProviderOneFile(@Mocked final FileInput input) throws Exception
+    public void testOpenForOneFile(@Mocked final FileInput input) throws Exception
     {
         new NonStrictExpectations() {{
             taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
@@ -112,7 +126,7 @@ public class TestCommonsCompressDecoderPlugin
     // samples.zip/sample_1.csv (1st)
     // samples.zip/sample_2.csv (2nd)
     @Test
-    public void testArchiveInputStreamProviderTwoFiles(@Mocked final FileInput input) throws Exception
+    public void testOpenForTwoFiles(@Mocked final FileInput input) throws Exception
     {
         new NonStrictExpectations() {{
             taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
@@ -150,7 +164,7 @@ public class TestCommonsCompressDecoderPlugin
     // samples.zip/sample_1.csv (3rd)
     // samples.zip/sample_2.csv (4th)
     @Test
-    public void testArchiveInputStreamProviderFourFiles(@Mocked final FileInput input) throws Exception
+    public void testOpenForFourFiles(@Mocked final FileInput input) throws Exception
     {
         new NonStrictExpectations() {{
             taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
@@ -187,6 +201,66 @@ public class TestCommonsCompressDecoderPlugin
             input.nextFile(); times = 3;
             input.close(); times = 1;
         }};
+    }
+
+    @Test
+    public void testOpenArchiveFormatAutoDetect(@Mocked final FileInput input) throws Exception
+    {
+        new NonStrictExpectations() {{
+            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+            task.getFormat(); result = "";
+            input.nextFile(); result = true; result = false;
+            input.poll(); result = getResourceAsBuffer("sample_1.tar");
+            task.getBufferAllocator(); result = new PooledBufferAllocator();
+        }};
+
+        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        FileInput archiveFileInput = plugin.open(taskSource, input);
+        String text;
+
+        Assert.assertTrue("Verify 1st file can be read.", archiveFileInput.nextFile());
+        text = readFileInput(archiveFileInput);
+        Assert.assertEquals("Verify 1st file read correctly.", "1,foo", text);
+
+        Assert.assertFalse("Verify there is no file.", archiveFileInput.nextFile());
+        archiveFileInput.close();
+
+        new Verifications() {{
+            input.nextFile(); times = 2;
+            input.close(); times = 1;
+        }};
+    }
+
+    @Test(expected=RuntimeException.class)
+    public void testOpenAutoDetectFailed(@Mocked final FileInput input) throws Exception
+    {
+        new NonStrictExpectations() {{
+            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+            task.getFormat(); result = "";
+            input.nextFile(); result = true; result = false;
+            input.poll(); result = getResourceAsBuffer("sample_1.csv"); // This is not an archive.
+            task.getBufferAllocator(); result = new PooledBufferAllocator();
+        }};
+
+        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        FileInput archiveFileInput = plugin.open(taskSource, input);
+        archiveFileInput.nextFile();
+    }
+
+    @Test(expected=RuntimeException.class)
+    public void testOpenExplicitConfigFailed(@Mocked final FileInput input) throws Exception
+    {
+        new NonStrictExpectations() {{
+            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+            task.getFormat(); result = "tar";
+            input.nextFile(); result = true; result = false;
+            input.poll(); result = getResourceAsBuffer("samples.zip"); // This is not tar file.
+            task.getBufferAllocator(); result = new PooledBufferAllocator();
+        }};
+
+        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        FileInput archiveFileInput = plugin.open(taskSource, input);
+        archiveFileInput.nextFile();
     }
 
     private Buffer getResourceAsBuffer(String resource) throws IOException {

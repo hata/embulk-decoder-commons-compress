@@ -4,6 +4,10 @@ plugins {
     id "java"
 }
 import com.github.jrubygradle.JRubyExec
+
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
+
 repositories {
     mavenCentral()
     jcenter()
@@ -12,7 +16,7 @@ configurations {
     provided
 }
 
-version = "0.1.0"
+version = "0.2.0"
 
 dependencies {
     compile  "org.embulk:embulk-core:0.4.6"
@@ -45,7 +49,7 @@ Gem::Specification.new do |spec|
   spec.description   = %[Commons Compress decoder plugin is an Embulk plugin that decodes files using Apache Commons Compress library. It is read by any file input plugins. Search the file input plugins by 'embulk-input file' keywords.]
   spec.email         = ["hiroki.ata@gmail.com"]
   spec.licenses      = ["MIT"]
-  # TODO: spec.homepage      = "https://github.com/hata/embulk-decoder-commons-compress"
+  spec.homepage      = "https://github.com/hata/embulk-decoder-commons-compress"
 
   spec.files         = `git ls-files`.split("\n") + Dir["classpath/*.jar"]
   spec.test_files    = spec.files.grep(%r"^(test|spec)/")
