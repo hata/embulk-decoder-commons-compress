@@ -107,14 +107,8 @@ public class TestCommonsCompressDecoderPlugin
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
-        String text;
 
-        Assert.assertTrue("Verify 1st file can be read.", archiveFileInput.nextFile());
-        text = readFileInput(archiveFileInput);
-        Assert.assertEquals("Verify 1st file read correctly.", "1,foo", text);
-
-        Assert.assertFalse("Verify there is no file.", archiveFileInput.nextFile());
-        archiveFileInput.close();
+        verifyContents(archiveFileInput, "1,foo");
 
         new Verifications() {{
             input.nextFile(); times = 2;
@@ -138,18 +132,8 @@ public class TestCommonsCompressDecoderPlugin
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
-        String text;
 
-        Assert.assertTrue("Verify 1st file can be read.", archiveFileInput.nextFile());
-        text = readFileInput(archiveFileInput);
-        Assert.assertEquals("Verify 1st file read correctly.", "1,foo", text);
-
-        Assert.assertTrue("Verify 2nd file can be read.", archiveFileInput.nextFile());
-        text = readFileInput(archiveFileInput);
-        Assert.assertEquals("Verify 2nd file read correctly.", "2,bar", text);
-
-        Assert.assertFalse("Verify there is no file.", archiveFileInput.nextFile());
-        archiveFileInput.close();
+        verifyContents(archiveFileInput, "1,foo", "2,bar");
 
         new Verifications() {{
             input.nextFile(); times = 2;
@@ -176,26 +160,8 @@ public class TestCommonsCompressDecoderPlugin
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
-        String text;
 
-        Assert.assertTrue("Verify the 1st file can be read.", archiveFileInput.nextFile());
-        text = readFileInput(archiveFileInput);
-        Assert.assertEquals("Verify the 1st file read correctly.", "1,foo", text);
-
-        Assert.assertTrue("Verify the 2nd file can be read.", archiveFileInput.nextFile());
-        text = readFileInput(archiveFileInput);
-        Assert.assertEquals("Verify the 2nd file read correctly.", "2,bar", text);
-
-        Assert.assertTrue("Verify the 3rd file can be read.", archiveFileInput.nextFile());
-        text = readFileInput(archiveFileInput);
-        Assert.assertEquals("Verify the 3rd file read correctly.", "1,foo", text);
-
-        Assert.assertTrue("Verify the 4th file can be read.", archiveFileInput.nextFile());
-        text = readFileInput(archiveFileInput);
-        Assert.assertEquals("Verify the 4th file read correctly.", "2,bar", text);
-
-        Assert.assertFalse("Verify there is no file.", archiveFileInput.nextFile());
-        archiveFileInput.close();
+        verifyContents(archiveFileInput, "1,foo", "2,bar", "1,foo", "2,bar");
 
         new Verifications() {{
             input.nextFile(); times = 3;
@@ -216,14 +182,8 @@ public class TestCommonsCompressDecoderPlugin
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
-        String text;
 
-        Assert.assertTrue("Verify 1st file can be read.", archiveFileInput.nextFile());
-        text = readFileInput(archiveFileInput);
-        Assert.assertEquals("Verify 1st file read correctly.", "1,foo", text);
-
-        Assert.assertFalse("Verify there is no file.", archiveFileInput.nextFile());
-        archiveFileInput.close();
+        verifyContents(archiveFileInput, "1,foo");
 
         new Verifications() {{
             input.nextFile(); times = 2;
@@ -263,6 +223,73 @@ public class TestCommonsCompressDecoderPlugin
         archiveFileInput.nextFile();
     }
 
+    @Test
+    public void testOpenForTGZFormat(@Mocked final FileInput input) throws Exception
+    {
+        new NonStrictExpectations() {{
+            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+            task.getFormat(); result = "tgz";
+            input.nextFile(); result = true; result = false;
+            input.poll(); result = getResourceAsBuffer("samples.tgz");
+            task.getBufferAllocator(); result = new PooledBufferAllocator();
+        }};
+
+        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        FileInput archiveFileInput = plugin.open(taskSource, input);
+
+        verifyContents(archiveFileInput, "1,foo", "2,bar");
+
+        new Verifications() {{
+            input.nextFile(); times = 2;
+            input.close(); times = 1;
+        }};
+    }
+
+    @Test
+    public void testOpenForTarGZFormat(@Mocked final FileInput input) throws Exception
+    {
+        new NonStrictExpectations() {{
+            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+            task.getFormat(); result = "tar.gz";
+            input.nextFile(); result = true; result = false;
+            input.poll(); result = getResourceAsBuffer("samples.tar.gz");
+            task.getBufferAllocator(); result = new PooledBufferAllocator();
+        }};
+
+        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        FileInput archiveFileInput = plugin.open(taskSource, input);
+
+        verifyContents(archiveFileInput, "1,foo", "2,bar");
+
+        new Verifications() {{
+            input.nextFile(); times = 2;
+            input.close(); times = 1;
+        }};
+    }
+
+    // NOTE: This may generate a warn relates to log4j...I am not sure why it is generated.
+    @Test
+    public void testOpenForTarBZ2Format(@Mocked final FileInput input) throws Exception
+    {
+        new NonStrictExpectations() {{
+            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+            task.getFormat(); result = "tar.bz2";
+            input.nextFile(); result = true; result = false;
+            input.poll(); result = getResourceAsBuffer("samples.tar.bz2");
+            task.getBufferAllocator(); result = new PooledBufferAllocator();
+        }};
+
+        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        FileInput archiveFileInput = plugin.open(taskSource, input);
+        
+        verifyContents(archiveFileInput, "1,foo", "2,bar");
+
+        new Verifications() {{
+            input.nextFile(); times = 2;
+            input.close(); times = 1;
+        }};
+    }
+
     private Buffer getResourceAsBuffer(String resource) throws IOException {
         InputStream in = getClass().getResourceAsStream(resource);
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -285,5 +312,15 @@ public class TestCommonsCompressDecoderPlugin
             buffer = input.poll();
         }
         return bout.toString().trim();
+    }
+    
+    private void verifyContents(FileInput input, String ...contents) throws IOException {
+        for (String expected : contents) {
+            Assert.assertTrue("Verify a file can be read.", input.nextFile());
+            String text = readFileInput(input);
+            Assert.assertEquals("Verify a file read correctly. text:" + text, expected, text);
+        }
+        Assert.assertFalse("Verify there is no file.", input.nextFile());
+        input.close();
     }
 }
