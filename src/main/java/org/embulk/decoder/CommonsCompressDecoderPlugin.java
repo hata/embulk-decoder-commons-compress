@@ -38,6 +38,15 @@ public class CommonsCompressDecoderPlugin
         PluginTask task = taskSource.loadTask(PluginTask.class);
         return new CommonsCompressFileInput(
                 task.getBufferAllocator(),
-                new CommonsCompressProvider(task, new FileInputInputStream(input)));
+                new CommonsCompressProvider(task, new FileInputInputStream(input) {
+                    // NOTE: This is workaround code to avoid hanging issue.
+                    // This issue will be fixed after merging #112.
+                    // https://github.com/embulk/embulk/pull/112
+                    @Override
+                    public long skip(long len) {
+                        long skipped = super.skip(len);
+                        return skipped > 0 ? skipped : 0;
+                    }
+                }));
     }
 }
