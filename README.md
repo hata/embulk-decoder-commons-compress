@@ -28,7 +28,7 @@ This decoder plugin for Embulk supports various archive formats using [Apache Co
 
 ## Example
 
-- Use auto detection. This can use for 1 format like tar and zip. If you would like to use combined format like tar.gz, please set the format to your configuration file.
+- Use auto detection. This can use for 1 format like tar and zip. If you would like to use a solid compression format like tar.gz, please set the format to your configuration file.
 
 ```yaml
 in:
@@ -47,9 +47,9 @@ in:
       format: tar
 ```
 
-- Set a combined format.
+- Set a solid compression format.
 
-```
+```yaml
 in:
   type: any input plugin type
   decoders:
