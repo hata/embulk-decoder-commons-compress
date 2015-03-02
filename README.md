@@ -13,20 +13,18 @@ This decoder plugin for Embulk supports various archive formats using [Apache Co
 - **format**: An archive format like tar, zip, and so on. (string, optional, default: "")
   - The format type is one of supported formats by by [Apache Commons Compress](http://commons.apache.org/proper/commons-compress/).
   - Auto detect is used when there is no configuration. This can use for a single format. If a file format is solid compression like tar.gz, please set format config explicitly.
-  
+  - Some listing formats in [Apache Commons Compress](http://commons.apache.org/proper/commons-compress/) may not work in your environment. I could confirm the following formats work well. Your environment may be able to use other formats listed in the site.
 
-## Support formats
+## Formats
 
-- **archive format**: ar, arj, cpio, dump, jar, 7z, tar, zip
-  - This is an archive format. This plugin lists all files for processing by embulk.
-- **compress format**: bzip2, deflate, gzip, lzma, pack200, snappy-framed, snappy-raw, xz, z
-  - This compress format lists a file for processing by embulk.
-- **solid compression format**: Need to set the config value explicitly.
+- **archive format**: ar, cpio, jar, tar, zip
+  - These formats are archive formats. All files in an archive are processed by embulk.
+- **compress format**: bzip2, deflate, gzip
+  - These formats are compress formats. Uncompressed file is processed by embulk.
+- **solid compression format**: Need to set *format* config parameter explicitly.
   - tgz, tar.gz
   - tbz, tbz2, tb2, tar.bz2
   - taz, tz, tar.Z
-  - tlz, tar.lz, tar.lzma
-  - txz, tar.xz
 
 ## Example
 

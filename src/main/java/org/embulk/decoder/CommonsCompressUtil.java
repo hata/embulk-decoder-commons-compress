@@ -9,6 +9,8 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
 
 class CommonsCompressUtil {
     // TODO: It may be better to check performance between Set and array.
+    // NOTE: Some file types may not work in an environment because some required
+    // libraries are not found.
     static final String[] archiveFormats = {
         ArchiveStreamFactory.AR,
         ArchiveStreamFactory.ARJ,
