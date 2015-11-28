@@ -16,12 +16,12 @@ configurations {
     provided
 }
 
-version = "0.3.0"
+version = "0.3.1"
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.4.6"
+    compile  "org.embulk:embulk-core:0.7.0"
     compile "org.apache.commons:commons-compress:1.9"
-    provided "org.embulk:embulk-core:0.4.6"
+    provided "org.embulk:embulk-core:0.7.0"
     // compile "YOUR_JAR_DEPENDENCY_GROUP:YOUR_JAR_DEPENDENCY_MODULE:YOUR_JAR_DEPENDENCY_VERSION"
     testCompile "org.jmockit:jmockit:1.15"
     testCompile "junit:junit:4.+"

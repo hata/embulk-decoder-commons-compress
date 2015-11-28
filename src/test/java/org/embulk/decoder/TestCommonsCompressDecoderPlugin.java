@@ -28,7 +28,6 @@ import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigSource;
 import org.embulk.config.DataSource;
 import org.embulk.config.TaskSource;
-import org.embulk.exec.PooledBufferAllocator;
 import org.embulk.spi.Buffer;
 import org.embulk.spi.BufferAllocator;
 import org.embulk.spi.DecoderPlugin;
@@ -97,7 +96,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "tar";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("sample_0.tar");
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -121,7 +120,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "tar";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("sample_1.tar");
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -146,7 +145,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "tar";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tar");
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -174,7 +173,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "zip";
             input.nextFile(); result = true; result = true; result = false; // two files.
             input.poll(); result = getResourceAsBuffer("samples.zip"); result = getResourceAsBuffer("samples.zip");
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -196,7 +195,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("sample_1.tar");
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -218,7 +217,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("sample_1.csv"); // This is not an archive.
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -234,7 +233,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "tar";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.zip"); // This is not tar file.
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -301,7 +300,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "tgz";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tgz");
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -323,7 +322,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "tar.gz";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tar.gz");
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -346,7 +345,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "tar.bz2";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tar.bz2");
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -369,7 +368,7 @@ public class TestCommonsCompressDecoderPlugin
             task.getFormat(); result = "tar.Z";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tar.Z");
-            task.getBufferAllocator(); result = new PooledBufferAllocator();
+            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
@@ -452,6 +451,10 @@ public class TestCommonsCompressDecoderPlugin
         return new ByteArrayInputStream(bout.toByteArray());
     }
 
+    private BufferAllocator newBufferAllocator() {
+        return new MockBufferAllocator();
+    }
+
     private class MockTaskSource implements TaskSource {
         private final String format;
 
@@ -531,6 +534,19 @@ public class TestCommonsCompressDecoderPlugin
         public TaskSource setNested(String arg0, DataSource arg1) {
             return null;
         }
+
+        public boolean has(String arg0) {
+            return false;
+        }
+
+        public TaskSource getNestedOrGetEmpty(String arg0) {
+            return null;
+        }
+
+        @Override
+        public TaskSource remove(String arg0) {
+            return null;
+        }
         
     }
 
@@ -557,17 +573,15 @@ public class TestCommonsCompressDecoderPlugin
 
         @Override
         public BufferAllocator getBufferAllocator() {
-            return new PooledBufferAllocator();
+            return newBufferAllocator();
         }
     }
 
     private class MockFileInput implements FileInput {
         Buffer buffer;
-        int pos;
 
         MockFileInput(Buffer buffer) {
             this.buffer = buffer;
-            pos = -1;
         }
 
         @Override
@@ -588,6 +602,18 @@ public class TestCommonsCompressDecoderPlugin
             } else {
                 return null;
             }
+        }
+    }
+
+    private class MockBufferAllocator implements BufferAllocator {
+        @Override
+        public Buffer allocate() {
+            return allocate(8192);
+        }
+
+        @Override
+        public Buffer allocate(int size) {
+            return Buffer.allocate(size);
         }
     }
 }
