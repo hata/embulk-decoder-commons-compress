@@ -44,7 +44,7 @@ task gemspec << { file("build/gemspec").write($/
 Gem::Specification.new do |spec|
   spec.name          = "${project.name}"
   spec.version       = "${project.version}"
-  spec.authors       = ["Hiroki Ata"]
+  spec.authors       = ["hata"]
   spec.summary       = %[Commons Compress decoder plugin for Embulk]
   spec.description   = %[Commons Compress decoder plugin is an Embulk plugin that decodes files using Apache Commons Compress library. It is read by any file input plugins. Search the file input plugins by 'embulk-input file' keywords.]
   spec.email         = ["hiroki.ata@gmail.com"]
