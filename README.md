@@ -66,6 +66,12 @@ in:
 $ ./gradlew gem
 ```
 
+To build with integrationTest(It works on OSX or Linux)
+```
+$ ./gradlew clean
+$ ./gradlew -DenableIntegrationTest=true gem
+```
+
 ## Reference
 
 - [Apache Commons Compress](http://commons.apache.org/proper/commons-compress/)
