@@ -1,5 +1,8 @@
 # Commons Compress decoder plugin for Embulk
 
+[![Build Status](https://travis-ci.org/hata/embulk-decoder-commons-compress.svg)](https://travis-ci.org/hata/embulk-decoder-commons-compress)
+
+
 This decoder plugin for Embulk supports various archive formats using [Apache Commons Compress](http://commons.apache.org/proper/commons-compress/) library.
 
 ## Overview
