@@ -13,6 +13,8 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.embulk.decoder.CommonsCompressDecoderPlugin.PluginTask;
 import org.embulk.spi.util.FileInputInputStream;
 import org.embulk.spi.util.InputStreamFileInput.Provider;
@@ -105,19 +107,19 @@ class CommonsCompressProvider implements Provider {
      * (Actually, compressor formats can use two or more times in this code.
      *  But it is not common case.)
      */
-    Iterator<InputStream> createInputStreamIterator(String[] formats,
+    Iterator<InputStream> createInputStreamIterator(String[] inputFormats,
             int pos, InputStream in) throws IOException {
-        if (pos >= formats.length) {
+        if (pos >= inputFormats.length) {
             return toIterator(in);
         }
 
         try {
-            String format = formats[pos];
+            String format = inputFormats[pos];
             if (CommonsCompressUtil.isArchiveFormat(format)) {
                 return new ArchiveInputStreamIterator(
                         createArchiveInputStream(format, in));
             } else if (CommonsCompressUtil.isCompressorFormat(format)) {
-                return createInputStreamIterator(formats, pos + 1,
+                return createInputStreamIterator(inputFormats, pos + 1,
                         createCompressorInputStream(format, in));
             }
             throw new IOException("Unsupported format is configured. format:"
@@ -169,6 +171,12 @@ class CommonsCompressProvider implements Provider {
                         "Failed to detect a file format. Please try to set a format explicitly.",
                         e);
             }
+        }
+
+        if (CompressorStreamFactory.GZIP.equalsIgnoreCase(format)) {
+            return new GzipCompressorInputStream(in, true);
+        } else if (CompressorStreamFactory.BZIP2.equalsIgnoreCase(format)) {
+            return new BZip2CompressorInputStream(in, true);
         } else {
             return factory.createCompressorInputStream(format, in);
         }

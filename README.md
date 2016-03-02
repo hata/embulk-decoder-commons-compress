@@ -29,6 +29,8 @@ This decoder plugin for Embulk supports various archive formats using [Apache Co
   - tbz, tbz2, tb2, tar.bz2
   - taz, tz, tar.Z
 
+If input files are concatenated gzip or bzip2 format, please set format parameter explicitly.
+
 ## Example
 
 - Use auto detection. This can use for 1 format like tar and zip. If you would like to use a solid compression format like tar.gz, please set the format to your configuration file.
@@ -59,6 +61,24 @@ in:
     - type: commons-compress
       format: tgz
 ```
+
+- Set *format* parameter to handle concatenated gzip(or bzip2) file.
+```yaml
+in:
+  type: any input plugin type
+  decoders:
+    - type: commons-compress
+      format: gz
+```
+
+```yaml
+in:
+  type: any input plugin type
+  decoders:
+    - type: commons-compress
+      format: bzip2
+```
+
 
 ## Build
 

@@ -240,7 +240,43 @@ public class TestCommonsCompressProvider {
             verifyContents(it, "1,foo", "2,bar");
         }
     }
-    
+
+    @Test
+    public void testCreateInputStreamConcatenatedGZ() throws Exception {
+        try (CommonsCompressProvider provider = new CommonsCompressProvider(task, files)) {
+            Iterator<InputStream> it = provider.createInputStreamIterator(
+                    new String[]{CompressorStreamFactory.GZIP}, 0, getResourceInputStream("concatenated.csv.gz"));
+            verifyContents(it, "1,foo\n2,bar");
+        }
+    }
+
+    @Test
+    public void testCreateInputStreamConcatenatedGZip() throws Exception {
+        try (CommonsCompressProvider provider = new CommonsCompressProvider(task, files)) {
+            Iterator<InputStream> it = provider.createInputStreamIterator(
+                    CommonsCompressUtil.toFormats("gzip"), 0, getResourceInputStream("concatenated.csv.gz"));
+            verifyContents(it, "1,foo\n2,bar");
+        }
+    }
+
+    @Test
+    public void testCreateInputStreamConcatenatedBZip2() throws Exception {
+        try (CommonsCompressProvider provider = new CommonsCompressProvider(task, files)) {
+            Iterator<InputStream> it = provider.createInputStreamIterator(
+                    new String[]{CompressorStreamFactory.BZIP2}, 0, getResourceInputStream("concatenated.csv.bz2"));
+            verifyContents(it, "1,foo\n2,bar");
+        }
+    }
+
+    @Test
+    public void testCreateInputStreamConcatenatedBZ2() throws Exception {
+        try (CommonsCompressProvider provider = new CommonsCompressProvider(task, files)) {
+            Iterator<InputStream> it = provider.createInputStreamIterator(
+                    CommonsCompressUtil.toFormats("bz2"), 0, getResourceInputStream("concatenated.csv.bz2"));
+            verifyContents(it, "1,foo\n2,bar");
+        }
+    }
+
     @Test
     public void testClose() throws Exception {
         CommonsCompressProvider provider = new CommonsCompressProvider(task, files);
@@ -303,7 +339,7 @@ public class TestCommonsCompressProvider {
         }
     }
 
-    @Test(expected=CompressorException.class)
+    @Test(expected=Exception.class)
     public void testCreateCompressorInputStreamWrongFormat() throws Exception {
         try (CommonsCompressProvider provider = new CommonsCompressProvider(task, files)) {
             provider.createCompressorInputStream("bzip2",

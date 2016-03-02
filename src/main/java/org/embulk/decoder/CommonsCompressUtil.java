@@ -22,6 +22,8 @@ class CommonsCompressUtil {
         ArchiveStreamFactory.ZIP,
     };
 
+    // Even indexes have both extensions and aliases. And odd indexes are
+    // CompressorStreamFactory values.
     static final String[] compressorFormats = {
         CompressorStreamFactory.BZIP2,
         CompressorStreamFactory.DEFLATE,
@@ -32,6 +34,8 @@ class CommonsCompressUtil {
         CompressorStreamFactory.SNAPPY_RAW,
         CompressorStreamFactory.XZ,
         CompressorStreamFactory.Z,
+        "bz2", // These values should be handled by normalizeFormats
+        "gzip",
     };
 
     // This table is even indexes have short extensions and odd indexes has
@@ -94,7 +98,7 @@ class CommonsCompressUtil {
         if (isAutoDetect(format)) {
             return null;
         } else if (isArchiveFormat(format) || isCompressorFormat(format)) {
-            return splitAndReverse(format);
+            return normalizeFormats(splitAndReverse(format));
         }
 
         String[] formats = toSolidCompressionFormats(format);
@@ -102,7 +106,7 @@ class CommonsCompressUtil {
             return formats;
         }
 
-        formats = splitAndReverse(format);
+        formats = normalizeFormats(splitAndReverse(format));
         
         for (String s : formats) {
             if (!(isArchiveFormat(s) || isCompressorFormat(s))) {
@@ -131,5 +135,21 @@ class CommonsCompressUtil {
         }
         Collections.reverse(result);
         return result.toArray(new String[result.size()]);
+    }
+
+    private static String[] normalizeFormats(String... formats) {
+        if (formats == null || formats.length == 0) {
+            return formats;
+        }
+
+        for (int i = 0;i < formats.length;i++) {
+            if (formats[i].equalsIgnoreCase("gzip")) {
+                formats[i] = CompressorStreamFactory.GZIP;
+            } else if (formats[i].equalsIgnoreCase("bz2")) {
+                formats[i] = CompressorStreamFactory.BZIP2;
+            }
+        }
+
+        return formats;
     }
 }

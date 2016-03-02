@@ -1,0 +1,27 @@
+in:
+  type: file
+  path_prefix: ./concatenated.csv.bz2
+  decoders:
+    - type: commons-compress
+      format: bz2
+  parser:
+    charset: UTF-8
+    newline: CRLF
+    type: csv
+    delimiter: ','
+    quote: '"'
+    trim_if_not_quoted: false
+    skip_header_lines: 0
+    allow_extra_columns: false
+    allow_optional_columns: false
+    columns:
+    - {name: id, type: long}
+    - {name: comment, type: string}
+out:
+  type: file
+  path_prefix: ./result_concatenated_bz2_
+  file_ext: csv
+  formatter:
+    type: csv
+    quote_policy: MINIMAL
+    newline: LF

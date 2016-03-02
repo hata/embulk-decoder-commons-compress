@@ -83,6 +83,34 @@ public class TestIntegration {
                 getChecksumFromFiles("result_tar.Z_000.00.csv"));
     }
 
+    @Test
+    public void testConcatenatedGZ() throws Exception {
+        assertEquals("Verify input and output contents are identical.",
+                getChecksumFromFiles(SAMPLE_SRC_FILES),
+                getChecksumFromFiles("result_concatenated_gz_000.00.csv"));
+    }
+
+    @Test
+    public void testConcatenatedGzip() throws Exception {
+        assertEquals("Verify input and output contents are identical.",
+                getChecksumFromFiles(SAMPLE_SRC_FILES),
+                getChecksumFromFiles("result_concatenated_gzip_000.00.csv"));
+    }
+
+    @Test
+    public void testConcatenatedBz2() throws Exception {
+        assertEquals("Verify input and output contents are identical.",
+                getChecksumFromFiles(SAMPLE_SRC_FILES),
+                getChecksumFromFiles("result_concatenated_bz2_000.00.csv"));
+    }
+
+    @Test
+    public void testConcatenatedBzip2() throws Exception {
+        assertEquals("Verify input and output contents are identical.",
+                getChecksumFromFiles(SAMPLE_SRC_FILES),
+                getChecksumFromFiles("result_concatenated_bzip2_000.00.csv"));
+    }
+
     private long getChecksumFromFiles(String ... files) throws IOException {
         Checksum cksum = new CRC32();
 
