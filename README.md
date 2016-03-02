@@ -62,7 +62,7 @@ in:
       format: tgz
 ```
 
-- Set decompress_concatenated to false if you would like to read the first concatenated entry only.
+- Set decompress_concatenated to false if you would like to read the first concatenated gzip/bzip2 archive only.
 
 ```yaml
 in:
