@@ -21,6 +21,10 @@ public class CommonsCompressDecoderPlugin
         @ConfigDefault("\"\"")
         public String getFormat();
 
+        @Config("decompress_concatenated")
+        @ConfigDefault("true")
+        public boolean getDecompressConcatenated();
+
         @ConfigInject
         public BufferAllocator getBufferAllocator();
     }

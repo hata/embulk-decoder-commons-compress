@@ -3,6 +3,7 @@ in:
   path_prefix: ./concatenated.csv.gz
   decoders:
     - type: commons-compress
+      decompress_concatenated: false
   parser:
     charset: UTF-8
     newline: CRLF
@@ -18,7 +19,7 @@ in:
     - {name: comment, type: string}
 out:
   type: file
-  path_prefix: ./result_concatenated_gz_
+  path_prefix: ./result_no_concatenated_gzip_
   file_ext: csv
   formatter:
     type: csv

@@ -17,6 +17,7 @@ This decoder plugin for Embulk supports various archive formats using [Apache Co
   - The format type is one of supported formats by by [Apache Commons Compress](http://commons.apache.org/proper/commons-compress/).
   - Auto detect is used when there is no configuration. This can use for a single format. If a file format is solid compression like tar.gz, please set format config explicitly.
   - Some listing formats in [Apache Commons Compress](http://commons.apache.org/proper/commons-compress/) may not work in your environment. I could confirm the following formats work well. Your environment may be able to use other formats listed in the site.
+- **decompress_concatenated**: gzip, bzip2, and xz formats support multiple concatenated streams. The default value of this parameter is true. If you want to disable it, then set to false. See [CompressorStreamFactory.setDecompressConcatenated()](https://commons.apache.org/proper/commons-compress/apidocs/org/apache/commons/compress/compressors/CompressorStreamFactory.html#setDecompressConcatenated(boolean)) in ver.1.9 for more details.
 
 ## Formats
 
@@ -29,7 +30,6 @@ This decoder plugin for Embulk supports various archive formats using [Apache Co
   - tbz, tbz2, tb2, tar.bz2
   - taz, tz, tar.Z
 
-If input files are concatenated gzip or bzip2 format, please set format parameter explicitly.
 
 ## Example
 
@@ -62,22 +62,16 @@ in:
       format: tgz
 ```
 
-- Set *format* parameter to handle concatenated gzip(or bzip2) file.
-```yaml
-in:
-  type: any input plugin type
-  decoders:
-    - type: commons-compress
-      format: gz
-```
+- Set decompress_concatenated to false if you would like to read only the first concatenated entry.
 
 ```yaml
 in:
   type: any input plugin type
   decoders:
     - type: commons-compress
-      format: bzip2
+      decompress_concatenated: false
 ```
+
 
 
 ## Build

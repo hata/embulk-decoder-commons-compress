@@ -111,6 +111,20 @@ public class TestIntegration {
                 getChecksumFromFiles("result_concatenated_bzip2_000.00.csv"));
     }
 
+    @Test
+    public void testNoConcatenatedGzip() throws Exception {
+        assertEquals("Verify input and output contents are identical.",
+                getChecksumFromFiles(SAMPLE_1_SRC_FILES),
+                getChecksumFromFiles("result_no_concatenated_gzip_000.00.csv"));
+    }
+
+    @Test
+    public void testNoConcatenatedBzip2() throws Exception {
+        assertEquals("Verify input and output contents are identical.",
+                getChecksumFromFiles(SAMPLE_1_SRC_FILES),
+                getChecksumFromFiles("result_no_concatenated_bzip2_000.00.csv"));
+    }
+
     private long getChecksumFromFiles(String ... files) throws IOException {
         Checksum cksum = new CRC32();
 

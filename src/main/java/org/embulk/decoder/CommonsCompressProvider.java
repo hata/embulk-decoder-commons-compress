@@ -26,6 +26,7 @@ class CommonsCompressProvider implements Provider {
     private final boolean formatAutoDetection;
     private Iterator<InputStream> inputStreamIterator;
     private String[] formats;
+    private final boolean decompressConcatenated;
 
     CommonsCompressProvider(PluginTask task, FileInputInputStream files) {
         this.files = files;
@@ -37,6 +38,8 @@ class CommonsCompressProvider implements Provider {
                 throw new RuntimeException("Failed to get a format.");
             }
         }
+        this.decompressConcatenated = task == null
+            || task.getDecompressConcatenated();
     }
 
     @Override
@@ -162,6 +165,7 @@ class CommonsCompressProvider implements Provider {
     CompressorInputStream createCompressorInputStream(String format,
             InputStream in) throws IOException, CompressorException {
         CompressorStreamFactory factory = new CompressorStreamFactory();
+        factory.setDecompressConcatenated(decompressConcatenated);
         if (CommonsCompressUtil.isAutoDetect(format)) {
             in = in.markSupported() ? in : new BufferedInputStream(in);
             try {
@@ -171,12 +175,6 @@ class CommonsCompressProvider implements Provider {
                         "Failed to detect a file format. Please try to set a format explicitly.",
                         e);
             }
-        }
-
-        if (CompressorStreamFactory.GZIP.equalsIgnoreCase(format)) {
-            return new GzipCompressorInputStream(in, true);
-        } else if (CompressorStreamFactory.BZIP2.equalsIgnoreCase(format)) {
-            return new BZip2CompressorInputStream(in, true);
         } else {
             return factory.createCompressorInputStream(format, in);
         }

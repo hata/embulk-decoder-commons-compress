@@ -3,7 +3,6 @@ in:
   path_prefix: ./concatenated.csv.bz2
   decoders:
     - type: commons-compress
-      format: bzip2
   parser:
     charset: UTF-8
     newline: CRLF

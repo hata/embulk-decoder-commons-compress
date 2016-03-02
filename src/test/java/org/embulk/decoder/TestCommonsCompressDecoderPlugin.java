@@ -60,6 +60,16 @@ public class TestCommonsCompressDecoderPlugin
     }
 
     @Test
+    public void testPluginTaskGetDecompressConcatenated() throws Exception {
+        Method method = CommonsCompressDecoderPlugin.PluginTask.class.getMethod("getDecompressConcatenated");
+        Config config = method.getAnnotation(Config.class);
+        ConfigDefault configDefault = method.getAnnotation(ConfigDefault.class);
+
+        Assert.assertEquals("Verify the config name.", "decompress_concatenated", config.value());
+        Assert.assertEquals("Verify the default config value.", "true", configDefault.value());
+    }
+
+    @Test
     public void testTransaction(@Mocked final ConfigSource config, @Mocked final DecoderPlugin.Control control)
     {
         new NonStrictExpectations() {{
@@ -552,9 +562,11 @@ public class TestCommonsCompressDecoderPlugin
 
     private class MockPluginTask implements CommonsCompressDecoderPlugin.PluginTask {
         private final String format;
+        private final boolean decompressConcatenated;
 
         MockPluginTask(String format) {
             this.format = format;
+            this.decompressConcatenated = true;
         }
 
         @Override
@@ -569,6 +581,11 @@ public class TestCommonsCompressDecoderPlugin
         @Override
         public String getFormat() {
             return format;
+        }
+
+        @Override
+        public boolean getDecompressConcatenated() {
+            return decompressConcatenated;
         }
 
         @Override

@@ -243,6 +243,10 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCreateInputStreamConcatenatedGZ() throws Exception {
+        new NonStrictExpectations() {{
+            task.getDecompressConcatenated(); result = true;
+        }};
+
         try (CommonsCompressProvider provider = new CommonsCompressProvider(task, files)) {
             Iterator<InputStream> it = provider.createInputStreamIterator(
                     new String[]{CompressorStreamFactory.GZIP}, 0, getResourceInputStream("concatenated.csv.gz"));
@@ -252,6 +256,10 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCreateInputStreamConcatenatedGZip() throws Exception {
+        new NonStrictExpectations() {{
+            task.getDecompressConcatenated(); result = true;
+        }};
+
         try (CommonsCompressProvider provider = new CommonsCompressProvider(task, files)) {
             Iterator<InputStream> it = provider.createInputStreamIterator(
                     CommonsCompressUtil.toFormats("gzip"), 0, getResourceInputStream("concatenated.csv.gz"));
@@ -261,6 +269,10 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCreateInputStreamConcatenatedBZip2() throws Exception {
+        new NonStrictExpectations() {{
+            task.getDecompressConcatenated(); result = true;
+        }};
+
         try (CommonsCompressProvider provider = new CommonsCompressProvider(task, files)) {
             Iterator<InputStream> it = provider.createInputStreamIterator(
                     new String[]{CompressorStreamFactory.BZIP2}, 0, getResourceInputStream("concatenated.csv.bz2"));
@@ -270,6 +282,10 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCreateInputStreamConcatenatedBZ2() throws Exception {
+        new NonStrictExpectations() {{
+            task.getDecompressConcatenated(); result = true;
+        }};
+
         try (CommonsCompressProvider provider = new CommonsCompressProvider(task, files)) {
             Iterator<InputStream> it = provider.createInputStreamIterator(
                     CommonsCompressUtil.toFormats("bz2"), 0, getResourceInputStream("concatenated.csv.bz2"));
