@@ -25,6 +25,10 @@ public class CommonsCompressDecoderPlugin
         @ConfigDefault("true")
         public boolean getDecompressConcatenated();
 
+        @Config("match_name")
+        @ConfigDefault("\"\"")
+        public String getMatchName();
+
         @ConfigInject
         public BufferAllocator getBufferAllocator();
     }

@@ -27,6 +27,7 @@ class CommonsCompressProvider implements Provider {
     private Iterator<InputStream> inputStreamIterator;
     private String[] formats;
     private final boolean decompressConcatenated;
+    private final String matchName;
 
     CommonsCompressProvider(PluginTask task, FileInputInputStream files) {
         this.files = files;
@@ -40,6 +41,7 @@ class CommonsCompressProvider implements Provider {
         }
         this.decompressConcatenated = task == null
             || task.getDecompressConcatenated();
+        this.matchName = (task == null)? "" : task.getMatchName();
     }
 
     @Override
@@ -88,7 +90,9 @@ class CommonsCompressProvider implements Provider {
         in = in.markSupported() ? in : new BufferedInputStream(in);
         try {
             return new ArchiveInputStreamIterator(
-                    createArchiveInputStream(AUTO_DETECT_FORMAT, in));
+                    createArchiveInputStream(AUTO_DETECT_FORMAT, in),
+                    this.matchName
+            );
         } catch (IOException | ArchiveException e) {
             // ArchiveStreamFactory set mark and reset the stream.
             // So, we can use the same stream to check compressor.
