@@ -18,6 +18,7 @@ This decoder plugin for Embulk supports various archive formats using [Apache Co
   - Auto detect is used when there is no configuration. This can use for a single format. If a file format is solid compression like tar.gz, please set format config explicitly.
   - Some listing formats in [Apache Commons Compress](http://commons.apache.org/proper/commons-compress/) may not work in your environment. I could confirm the following formats work well. Your environment may be able to use other formats listed in the site.
 - **decompress_concatenated**: gzip, bzip2, and xz formats support multiple concatenated streams. The default value of this parameter is true. If you want to disable it, then set to false. See [CompressorStreamFactory.setDecompressConcatenated()](https://commons.apache.org/proper/commons-compress/apidocs/org/apache/commons/compress/compressors/CompressorStreamFactory.html#setDecompressConcatenated(boolean)) in ver.1.9 for more details.
+- **match_name**: Only the files in an archive which match to match_name are processed. match_name is set by regular expression.
 
 ## Formats
 
@@ -70,6 +71,16 @@ in:
   decoders:
     - type: commons-compress
       decompress_concatenated: false
+```
+
+- Set match_name to extract only the files whose suffix is '.csv' from an archive.
+
+```yaml
+in:
+  type: any input plugin type
+  decoders:
+    - type: commons-compress
+      match_name_: ".*\\.csv"
 ```
 
 

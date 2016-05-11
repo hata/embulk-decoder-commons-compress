@@ -563,10 +563,12 @@ public class TestCommonsCompressDecoderPlugin
     private class MockPluginTask implements CommonsCompressDecoderPlugin.PluginTask {
         private final String format;
         private final boolean decompressConcatenated;
+        private final String matchName;
 
         MockPluginTask(String format) {
             this.format = format;
             this.decompressConcatenated = true;
+            this.matchName = "";
         }
 
         @Override
@@ -586,6 +588,11 @@ public class TestCommonsCompressDecoderPlugin
         @Override
         public boolean getDecompressConcatenated() {
             return decompressConcatenated;
+        }
+
+        @Override
+        public String getMatchName() {
+            return matchName;
         }
 
         @Override

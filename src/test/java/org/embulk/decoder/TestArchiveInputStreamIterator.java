@@ -71,6 +71,21 @@ public class TestArchiveInputStreamIterator {
     }
 
     @Test
+    public void testHasNextForNameMatch(@Mocked final ArchiveInputStream ain, @Mocked final ArchiveEntry entry) throws Exception {
+        new NonStrictExpectations() {{
+            ain.getNextEntry(); result = entry; result = entry; result = entry; result = null;
+            entry.getName(); result = "first.csv"; result = "second.txt"; result = "third.csv";
+        }};
+        ArchiveInputStreamIterator it = new ArchiveInputStreamIterator(ain, ".*\\.csv");
+        assertTrue("Verify 1st file match", it.hasNext());
+        assertEquals("Verify ArchiveInputStream is return.", (InputStream)ain, it.next());
+        assertTrue("Verify 3rd file match", it.hasNext());
+        assertEquals("Verify ArchiveInputStream is return.", (InputStream)ain, it.next());
+        assertFalse("Veryfy no more entry because second.txt is skipped.", it.hasNext());
+        assertNull("Verify there is no stream.", it.next());
+    }
+
+    @Test
     public void testArchiveFile() throws Exception {
         InputStream in = getClass().getResourceAsStream("samples.tar");
         ArchiveInputStream ain = new ArchiveStreamFactory().createArchiveInputStream(in);

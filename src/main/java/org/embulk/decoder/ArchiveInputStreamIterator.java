@@ -10,11 +10,17 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 class ArchiveInputStreamIterator implements Iterator<InputStream> {
     private ArchiveInputStream ain;
     private ArchiveEntry entry;
+    private String matchRegex = "";
     private boolean endOfArchive = false;
 
     ArchiveInputStreamIterator(ArchiveInputStream ain)
     {
         this.ain = ain;
+    }
+
+    ArchiveInputStreamIterator(ArchiveInputStream ain, String matchRegex) {
+        this.ain = ain;
+        this.matchRegex = matchRegex;
     }
 
     @Override
@@ -60,9 +66,22 @@ class ArchiveInputStreamIterator implements Iterator<InputStream> {
                 return false;
             } else if (entry.isDirectory()) {
                 continue;
+            } else if (!matchName(entry, matchRegex)){
+                continue;
             } else {
                 return true;
             }
+        }
+    }
+
+    private boolean matchName(ArchiveEntry entry, String regex) {
+        String name = entry.getName();
+        if(regex == null || regex.equals("")){
+            return true;
+        } else if(name == null) {
+            return false;
+        } else {
+            return name.matches(regex);
         }
     }
 }
