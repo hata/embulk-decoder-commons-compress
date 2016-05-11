@@ -80,7 +80,7 @@ in:
   type: any input plugin type
   decoders:
     - type: commons-compress
-      match_name_: ".*\\.csv"
+      match_name: ".*\\.csv"
 ```
 
 
