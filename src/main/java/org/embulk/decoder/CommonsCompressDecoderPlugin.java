@@ -25,6 +25,10 @@ public class CommonsCompressDecoderPlugin
         @ConfigDefault("true")
         public boolean getDecompressConcatenated();
 
+        @Config("pass_uncompress_file")
+        @ConfigDefault("false")
+        public boolean getPassUncompressFile();
+
         @Config("match_name")
         @ConfigDefault("\"\"")
         public String getMatchName();

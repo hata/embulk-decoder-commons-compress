@@ -82,14 +82,14 @@ class CommonsCompressUtil {
     /**
      * Split solid compresson formats and reorder to decode the formats
      * based on this order.
-     * 
+     *
      * If format is a single format like "tar", then return
      * new String[]{"tar"}.
      * If format is a solid compresson format like "tgz", then return
      * new String[]{"gzip", "tar"}.
      * If format is "tar bzip2", then return
      * new String[]{"bzip2", "tar"}.
-     * 
+     *
      * @param format contains a file format or some file formats.
      * @return a single format or multi format values.
      * Otherwise, returns null.
@@ -107,13 +107,13 @@ class CommonsCompressUtil {
         }
 
         formats = normalizeFormats(splitAndReverse(format));
-        
+
         for (String s : formats) {
             if (!(isArchiveFormat(s) || isCompressorFormat(s))) {
                 return null;
             }
         }
-        
+
         return formats;
     }
 

@@ -19,6 +19,7 @@ This decoder plugin for Embulk supports various archive formats using [Apache Co
   - Some listing formats in [Apache Commons Compress](http://commons.apache.org/proper/commons-compress/) may not work in your environment. I could confirm the following formats work well. Your environment may be able to use other formats listed in the site.
 - **decompress_concatenated**: gzip, bzip2, and xz formats support multiple concatenated streams. The default value of this parameter is true. If you want to disable it, then set to false. See [CompressorStreamFactory.setDecompressConcatenated()](https://commons.apache.org/proper/commons-compress/apidocs/org/apache/commons/compress/compressors/CompressorStreamFactory.html#setDecompressConcatenated(boolean)) in ver.1.9 for more details.
 - **match_name**: Only the files in an archive which match to match_name are processed. match_name is set by regular expression.
+- **pass_uncompress_file**: just pass uncompress files to backward process.
 
 ## Formats
 

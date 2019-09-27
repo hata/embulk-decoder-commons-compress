@@ -54,7 +54,7 @@ public class TestCommonsCompressDecoderPlugin
         Method method = CommonsCompressDecoderPlugin.PluginTask.class.getMethod("getFormat");
         Config config = method.getAnnotation(Config.class);
         ConfigDefault configDefault = method.getAnnotation(ConfigDefault.class);
-        
+
         Assert.assertEquals("Verify the config name.", "format", config.value());
         Assert.assertEquals("Verify the default config value.", DEFAULT_FORMAT_CONFIG, configDefault.value());
     }
@@ -234,7 +234,6 @@ public class TestCommonsCompressDecoderPlugin
         FileInput archiveFileInput = plugin.open(taskSource, input);
         archiveFileInput.nextFile();
     }
-
     @Test(expected=RuntimeException.class)
     public void testOpenExplicitConfigFailed(@Mocked final FileInput input) throws Exception
     {
@@ -360,7 +359,7 @@ public class TestCommonsCompressDecoderPlugin
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
-        
+
         verifyContents(archiveFileInput, "1,foo", "2,bar");
 
         new Verifications() {{
@@ -383,7 +382,7 @@ public class TestCommonsCompressDecoderPlugin
 
         CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
-        
+
         verifyContents(archiveFileInput, "1,foo", "2,bar");
 
         new Verifications() {{
@@ -418,7 +417,7 @@ public class TestCommonsCompressDecoderPlugin
         }
         return bout.toString().trim();
     }
-    
+
     private void verifyContents(FileInput input, String ...contents) throws IOException {
         for (String expected : contents) {
             Assert.assertTrue("Verify a file can be read.", input.nextFile());
@@ -428,7 +427,7 @@ public class TestCommonsCompressDecoderPlugin
         Assert.assertFalse("Verify there is no file.", input.nextFile());
         input.close();
     }
-    
+
     private InputStream getArchiveInputStream(String format, String ...resourceFiles)
             throws ArchiveException, URISyntaxException, IOException {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -557,18 +556,20 @@ public class TestCommonsCompressDecoderPlugin
         public TaskSource remove(String arg0) {
             return null;
         }
-        
+
     }
 
     private class MockPluginTask implements CommonsCompressDecoderPlugin.PluginTask {
         private final String format;
         private final boolean decompressConcatenated;
         private final String matchName;
+        private final boolean passUncompressFile;
 
         MockPluginTask(String format) {
             this.format = format;
             this.decompressConcatenated = true;
             this.matchName = "";
+            this.passUncompressFile = false;
         }
 
         @Override
@@ -598,6 +599,11 @@ public class TestCommonsCompressDecoderPlugin
         @Override
         public BufferAllocator getBufferAllocator() {
             return newBufferAllocator();
+        }
+
+        @Override
+        public boolean getPassUncompressFile() {
+            return passUncompressFile;
         }
     }
 

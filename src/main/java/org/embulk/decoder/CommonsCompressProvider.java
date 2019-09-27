@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,6 +29,7 @@ class CommonsCompressProvider implements Provider {
     private String[] formats;
     private final boolean decompressConcatenated;
     private final String matchName;
+    private final boolean passUncompressFile;
 
     CommonsCompressProvider(PluginTask task, FileInputInputStream files) {
         this.files = files;
@@ -42,6 +44,7 @@ class CommonsCompressProvider implements Provider {
         this.decompressConcatenated = task == null
             || task.getDecompressConcatenated();
         this.matchName = (task == null)? "" : task.getMatchName();
+        this.passUncompressFile = task == null || task.getPassUncompressFile();
     }
 
     @Override
@@ -79,7 +82,7 @@ class CommonsCompressProvider implements Provider {
     boolean isFormatAutoDetection() {
         return formatAutoDetection;
     }
-    
+
     String[] getFormats() {
         return formats;
     }
@@ -100,13 +103,18 @@ class CommonsCompressProvider implements Provider {
                 return toIterator(createCompressorInputStream(AUTO_DETECT_FORMAT, in));
             } catch (CompressorException e2) {
                 throw new IOException("Failed to detect a file format.", e2);
+            } catch (IOException e3) {
+                if (!this.passUncompressFile) {
+                   throw new IOException(e3.getMessage(), e3);
+                }
+                return toIterator(in);
             }
         }
     }
 
     /**
      * Create iterator to list InputStream for each archived/compressed file.
-     * 
+     *
      * This can handle like the following formats:
      * 1 archived format which defined in ArchiveStreamFactory(e.g. tar)
      * 1 archived format and 1 compressor format defined in CompressorStreamFactory.(e.g. tar.bz2)
@@ -119,15 +127,22 @@ class CommonsCompressProvider implements Provider {
         if (pos >= inputFormats.length) {
             return toIterator(in);
         }
+        boolean passUncompressFile = true;
 
         try {
             String format = inputFormats[pos];
+            System.out.println(format);
+            System.out.println(Arrays.toString(inputFormats));
+
+
             if (CommonsCompressUtil.isArchiveFormat(format)) {
                 return new ArchiveInputStreamIterator(
                         createArchiveInputStream(format, in));
             } else if (CommonsCompressUtil.isCompressorFormat(format)) {
                 return createInputStreamIterator(inputFormats, pos + 1,
                         createCompressorInputStream(format, in));
+            }else if (passUncompressFile){
+                return toIterator(in);
             }
             throw new IOException("Unsupported format is configured. format:"
                     + format);
@@ -139,14 +154,14 @@ class CommonsCompressProvider implements Provider {
     /**
      * Create a new ArchiveInputStream to read an archive file based on a format
      * parameter.
-     * 
+     *
      * If format is not set, this method tries to detect file format
      * automatically. In this case, BufferedInputStream is used to wrap
      * FileInputInputStream instance. BufferedInputStream may read a data
      * partially when calling files.nextFile(). However, it doesn't matter
      * because the partial read data should be discarded. And then this method
      * is called again to create a new ArchiveInputStream.
-     * 
+     *
      * @return a new ArchiveInputStream instance.
      */
     ArchiveInputStream createArchiveInputStream(String format, InputStream in)
