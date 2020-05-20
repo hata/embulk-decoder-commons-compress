@@ -124,7 +124,8 @@ class CommonsCompressProvider implements Provider {
             String format = inputFormats[pos];
             if (CommonsCompressUtil.isArchiveFormat(format)) {
                 return new ArchiveInputStreamIterator(
-                        createArchiveInputStream(format, in));
+                        createArchiveInputStream(format, in),
+                        this.matchName);
             } else if (CommonsCompressUtil.isCompressorFormat(format)) {
                 return createInputStreamIterator(inputFormats, pos + 1,
                         createCompressorInputStream(format, in));
