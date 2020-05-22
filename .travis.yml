@@ -1,3 +1,5 @@
 language: java
+dist: xenial
+jdk:
+  - openjdk8
 script: ./gradlew -DenableIntegrationTest=true gem
-
