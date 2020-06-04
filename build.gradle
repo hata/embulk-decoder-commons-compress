@@ -7,8 +7,8 @@ import com.github.jrubygradle.JRubyExec
 
 apply from: 'https://raw.githubusercontent.com/hata/gradle-plugins/master/embulk-integration-test.gradle'
 
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 repositories {
     mavenCentral()
@@ -21,9 +21,9 @@ configurations {
 version = "0.4.2"
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.8.0"
-    compile "org.apache.commons:commons-compress:1.13"
-    provided "org.embulk:embulk-core:0.8.0"
+    compile  "org.embulk:embulk-core:0.9.23"
+    compile "org.apache.commons:commons-compress:1.20"
+    provided "org.embulk:embulk-core:0.9.23"
     // compile "YOUR_JAR_DEPENDENCY_GROUP:YOUR_JAR_DEPENDENCY_MODULE:YOUR_JAR_DEPENDENCY_VERSION"
     testCompile "org.jmockit:jmockit:1.15"
     testCompile "junit:junit:4.+"
