@@ -6,7 +6,7 @@ import java.io.InputStream;
 import org.embulk.spi.Buffer;
 import org.embulk.spi.BufferAllocator;
 import org.embulk.spi.FileInput;
-import org.embulk.spi.util.InputStreamFileInput.Provider;
+import org.embulk.util.file.InputStreamFileInput.Provider;
 
 
 class CommonsCompressFileInput implements FileInput

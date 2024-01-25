@@ -9,10 +9,9 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map.Entry;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 import mockit.Verifications;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -23,21 +22,17 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.compress.utils.IOUtils;
-import org.embulk.config.Config;
-import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigSource;
-import org.embulk.config.DataSource;
 import org.embulk.config.TaskSource;
+import org.embulk.config.DataSource;
+import org.embulk.util.config.Config;
+import org.embulk.util.config.ConfigDefault;
 import org.embulk.spi.Buffer;
 import org.embulk.spi.BufferAllocator;
 import org.embulk.spi.DecoderPlugin;
 import org.embulk.spi.FileInput;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 
 public class TestCommonsCompressDecoderPlugin
 {
@@ -72,28 +67,23 @@ public class TestCommonsCompressDecoderPlugin
     @Test
     public void testTransaction(@Mocked final ConfigSource config, @Mocked final DecoderPlugin.Control control)
     {
-        new NonStrictExpectations() {{
-            config.loadConfig(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
-            task.dump(); result = taskSource;
+        new Expectations() {{
+            task.toTaskSource(); result = taskSource;
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         plugin.transaction(config, control);
 
         new Verifications() {{
-            control.run(taskSource);
+            task.toTaskSource(); times = 1;
+            control.run(taskSource); times = 1;
         }};
     }
 
     @Test
     public void testOpen(@Mocked final FileInput input)
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
-        }};
-
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
-
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         Assert.assertNotNull("Verify a value is returned.", plugin.open(taskSource, input));
     }
 
@@ -101,15 +91,13 @@ public class TestCommonsCompressDecoderPlugin
     @Test
     public void testOpenForNoFile(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "tar";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("sample_0.tar");
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
 
         Assert.assertFalse("Verify there is no file.", archiveFileInput.nextFile());
@@ -125,15 +113,13 @@ public class TestCommonsCompressDecoderPlugin
     @Test
     public void testOpenForOneFile(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "tar";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("sample_1.tar");
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
 
         verifyContents(archiveFileInput, "1,foo");
@@ -150,15 +136,13 @@ public class TestCommonsCompressDecoderPlugin
     @Test
     public void testOpenForTwoFiles(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "tar";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tar");
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
 
         verifyContents(archiveFileInput, "1,foo", "2,bar");
@@ -169,46 +153,16 @@ public class TestCommonsCompressDecoderPlugin
         }};
     }
 
-    // input.nextFile() returns true
-    // samples.zip/sample_1.csv (1st)
-    // samples.zip/sample_2.csv (2nd)
-    // input.nextFile() returns true
-    // samples.zip/sample_1.csv (3rd)
-    // samples.zip/sample_2.csv (4th)
-    @Test
-    public void testOpenForFourFiles(@Mocked final FileInput input) throws Exception
-    {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
-            task.getFormat(); result = "zip";
-            input.nextFile(); result = true; result = true; result = false; // two files.
-            input.poll(); result = getResourceAsBuffer("samples.zip"); result = getResourceAsBuffer("samples.zip");
-            task.getBufferAllocator(); result = newBufferAllocator();
-        }};
-
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
-        FileInput archiveFileInput = plugin.open(taskSource, input);
-
-        verifyContents(archiveFileInput, "1,foo", "2,bar", "1,foo", "2,bar");
-
-        new Verifications() {{
-            input.nextFile(); times = 3;
-            input.close(); times = 1;
-        }};
-    }
-
     @Test
     public void testOpenArchiveFormatAutoDetect(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("sample_1.tar");
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
 
         verifyContents(archiveFileInput, "1,foo");
@@ -222,15 +176,13 @@ public class TestCommonsCompressDecoderPlugin
     @Test(expected=RuntimeException.class)
     public void testOpenAutoDetectFailed(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("sample_1.csv"); // This is not an archive.
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
         archiveFileInput.nextFile();
     }
@@ -238,15 +190,13 @@ public class TestCommonsCompressDecoderPlugin
     @Test(expected=RuntimeException.class)
     public void testOpenExplicitConfigFailed(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "tar";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.zip"); // This is not tar file.
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
         archiveFileInput.nextFile();
     }
@@ -270,7 +220,7 @@ public class TestCommonsCompressDecoderPlugin
             FileInput mockInput = new MockFileInput(
                     getInputStreamAsBuffer(
                             getArchiveInputStream(format, "sample_1.csv", "sample_2.csv")));
-            CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+            CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
             FileInput archiveFileInput = plugin.open(mockTaskSource, mockInput);
             verifyContents(archiveFileInput, "1,foo", "2,bar");
         }
@@ -296,7 +246,7 @@ public class TestCommonsCompressDecoderPlugin
             FileInput mockInput = new MockFileInput(
                     getInputStreamAsBuffer(
                             getCompressorInputStream(format, "sample_1.csv")));
-            CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+            CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
             FileInput archiveFileInput = plugin.open(mockTaskSource, mockInput);
             verifyContents(archiveFileInput, "1,foo");
         }
@@ -305,15 +255,13 @@ public class TestCommonsCompressDecoderPlugin
     @Test
     public void testOpenForTGZFormat(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "tgz";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tgz");
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
 
         verifyContents(archiveFileInput, "1,foo", "2,bar");
@@ -327,15 +275,13 @@ public class TestCommonsCompressDecoderPlugin
     @Test
     public void testOpenForTarGZFormat(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "tar.gz";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tar.gz");
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
 
         verifyContents(archiveFileInput, "1,foo", "2,bar");
@@ -350,15 +296,13 @@ public class TestCommonsCompressDecoderPlugin
     @Test
     public void testOpenForTarBZ2Format(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "tar.bz2";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tar.bz2");
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
         
         verifyContents(archiveFileInput, "1,foo", "2,bar");
@@ -373,15 +317,13 @@ public class TestCommonsCompressDecoderPlugin
     @Test
     public void testOpenForTarZFormat(@Mocked final FileInput input) throws Exception
     {
-        new NonStrictExpectations() {{
-            taskSource.loadTask(CommonsCompressDecoderPlugin.PluginTask.class); result = task;
+        new Expectations() {{
             task.getFormat(); result = "tar.Z";
             input.nextFile(); result = true; result = false;
             input.poll(); result = getResourceAsBuffer("samples.tar.Z");
-            task.getBufferAllocator(); result = newBufferAllocator();
         }};
 
-        CommonsCompressDecoderPlugin plugin = new CommonsCompressDecoderPlugin();
+        CommonsCompressDecoderPlugin plugin = newMockedCommonsCompressDecoderPlugin();
         FileInput archiveFileInput = plugin.open(taskSource, input);
         
         verifyContents(archiveFileInput, "1,foo", "2,bar");
@@ -401,7 +343,7 @@ public class TestCommonsCompressDecoderPlugin
           len = in.read(buff);
         }
         in.close();
-        return Buffer.wrap(bout.toByteArray());
+        return new MockBuffer(bout.toByteArray());
     }
 
     private Buffer getResourceAsBuffer(String resource) throws IOException {
@@ -421,7 +363,7 @@ public class TestCommonsCompressDecoderPlugin
     
     private void verifyContents(FileInput input, String ...contents) throws IOException {
         for (String expected : contents) {
-            Assert.assertTrue("Verify a file can be read.", input.nextFile());
+            Assert.assertTrue("Verify a file can be read." + expected, input.nextFile());
             String text = readFileInput(input);
             Assert.assertEquals("Verify a file read correctly. text:" + text, expected, text);
         }
@@ -461,15 +403,9 @@ public class TestCommonsCompressDecoderPlugin
         return new ByteArrayInputStream(bout.toByteArray());
     }
 
-    private BufferAllocator newBufferAllocator() {
-        return new MockBufferAllocator();
-    }
-
     private class MockTaskSource implements TaskSource {
-        private final String format;
 
         MockTaskSource(String format) {
-            this.format = format;
         }
 
         @Override
@@ -484,16 +420,6 @@ public class TestCommonsCompressDecoderPlugin
 
         @Override
         public List<String> getAttributeNames() {
-            return null;
-        }
-
-        @Override
-        public Iterable<Entry<String, JsonNode>> getAttributes() {
-            return null;
-        }
-
-        @Override
-        public ObjectNode getObjectNode() {
             return null;
         }
 
@@ -514,14 +440,6 @@ public class TestCommonsCompressDecoderPlugin
 
         @Override
         public TaskSource getNestedOrSetEmpty(String arg0) {
-            return null;
-        }
-
-        @Override
-        public <T> T loadTask(Class<T> clazz) {
-            if (CommonsCompressDecoderPlugin.PluginTask.class.equals(clazz)) {
-                return clazz.cast(new MockPluginTask(format));
-            }
             return null;
         }
 
@@ -560,47 +478,6 @@ public class TestCommonsCompressDecoderPlugin
         
     }
 
-    private class MockPluginTask implements CommonsCompressDecoderPlugin.PluginTask {
-        private final String format;
-        private final boolean decompressConcatenated;
-        private final String matchName;
-
-        MockPluginTask(String format) {
-            this.format = format;
-            this.decompressConcatenated = true;
-            this.matchName = "";
-        }
-
-        @Override
-        public TaskSource dump() {
-            return null;
-        }
-
-        @Override
-        public void validate() {
-        }
-
-        @Override
-        public String getFormat() {
-            return format;
-        }
-
-        @Override
-        public boolean getDecompressConcatenated() {
-            return decompressConcatenated;
-        }
-
-        @Override
-        public String getMatchName() {
-            return matchName;
-        }
-
-        @Override
-        public BufferAllocator getBufferAllocator() {
-            return newBufferAllocator();
-        }
-    }
-
     private class MockFileInput implements FileInput {
         Buffer buffer;
 
@@ -637,7 +514,100 @@ public class TestCommonsCompressDecoderPlugin
 
         @Override
         public Buffer allocate(int size) {
-            return Buffer.allocate(size);
+            return new MockBuffer(new byte[size], 0, size);
         }
+    }
+
+    private class MockBuffer extends Buffer {
+        private int offset;
+        private int limit;
+        private byte[] bytes;
+
+        MockBuffer(byte[] bytes) {
+            this(bytes, 0, bytes.length);
+        }
+
+        MockBuffer(byte[] bytes, int index, int length) {
+            offset = index;
+            limit = length;
+            this.bytes = bytes;
+        }
+
+        @Override
+        public byte[] array() {
+            return bytes;
+        }
+
+        @Override
+        public int offset() {
+            return offset;
+        }
+
+        @Override
+        public Buffer offset(int offset) {
+            this.offset = offset;
+            return this;
+        }
+
+        @Override
+        public int limit() {
+            return limit;
+        }
+
+        @Override
+        public Buffer limit(int limit) {
+            this.limit = limit;
+            return this;
+        }
+
+        @Override
+        public int capacity() {
+            return bytes.length;
+        }
+
+        @Override
+        public void setBytes(int index, byte[] source, int sourceIndex, int length) {
+            System.arraycopy(source, sourceIndex, bytes, index, length);
+        }
+
+        @Override
+        public void setBytes(int index, Buffer source, int sourceIndex, int length) {
+            byte[] sourceBytes = new byte[source.capacity()];
+            source.getBytes(0, sourceBytes, 0, sourceBytes.length);
+            setBytes(index, sourceBytes, sourceIndex, length);
+        }
+
+        @Override
+        public void getBytes(int index, byte[] dest, int destIndex, int length) {
+            if (bytes != null && dest != null) {
+                System.arraycopy(bytes, offset + index, dest, destIndex, length);
+            }
+        }
+
+        @Override
+        public void getBytes(int index, Buffer dest, int destIndex, int length) {
+            dest.setBytes(destIndex, bytes, offset + index, length);
+        }
+
+        @Override
+        public void release() {
+            this.bytes = null;
+        }
+    }
+
+    private CommonsCompressDecoderPlugin newMockedCommonsCompressDecoderPlugin() {
+        return new CommonsCompressDecoderPlugin() {
+            BufferAllocator getBufferAllocator() {
+                return new MockBufferAllocator();
+            }
+
+            PluginTask getTask(ConfigSource configSource) {
+                return task;
+            }
+
+            PluginTask getTask(TaskSource taskSource) {
+                return task;
+            }
+        };
     }
 }

@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
+import mockit.Expectations;
 import mockit.Verifications;
 
 import org.embulk.spi.Buffer;
 import org.embulk.spi.BufferAllocator;
-import org.embulk.spi.util.InputStreamFileInput.Provider;
+import org.embulk.util.file.InputStreamFileInput.Provider;
 import org.junit.Test;
 
 public class TestCommonsCompressFileInput {
@@ -23,16 +23,15 @@ public class TestCommonsCompressFileInput {
     @Test
     public void testPoll(@Mocked final InputStream in, @Mocked final Buffer allocBuffer) throws Exception {
         final byte[] bytes = new byte[]{'f', 'o', 'o'};
-        final int readLength = 3;
+        final int readLength = bytes.length;
 
-        new NonStrictExpectations() {{
+        new Expectations() {{
             provider.openNext(); result = in;
             allocator.allocate(); result = allocBuffer;
             allocBuffer.array(); result = bytes;
             allocBuffer.offset(); result = 0;
             allocBuffer.capacity(); result = bytes.length;
             allocBuffer.limit(readLength); result = allocBuffer;
-            allocBuffer.release();
             in.read(bytes, 0, bytes.length); result = readLength;
         }};
         
@@ -51,7 +50,7 @@ public class TestCommonsCompressFileInput {
     public void testPollThrowsException(@Mocked final InputStream in, @Mocked final Buffer allocBuffer) throws Exception {
         final byte[] bytes = new byte[]{'f', 'o', 'o'};
 
-        new NonStrictExpectations() {{
+        new Expectations() {{
             provider.openNext(); result = in;
             allocator.allocate(); result = allocBuffer;
             allocBuffer.array(); result = bytes;
@@ -81,7 +80,7 @@ public class TestCommonsCompressFileInput {
 
     @Test
     public void testNextFile(@Mocked final InputStream in) throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             provider.openNext(); result = in; result = null;
             provider.close();
         }};
@@ -99,9 +98,8 @@ public class TestCommonsCompressFileInput {
 
     @Test(expected=RuntimeException.class)
     public void testNextFileThrowsException() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             provider.openNext(); result = new IOException("openNext throws IOException.");
-            provider.close();
         }};
         
         CommonsCompressFileInput input = new CommonsCompressFileInput(allocator, provider);
@@ -111,7 +109,7 @@ public class TestCommonsCompressFileInput {
 
     @Test
     public void testClose() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             provider.close();
         }};
         
@@ -125,7 +123,7 @@ public class TestCommonsCompressFileInput {
 
     @Test
     public void testCloseDoNotCloseStream(@Mocked final InputStream in) throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             provider.openNext(); result = in;
             provider.close();
         }};
@@ -142,7 +140,7 @@ public class TestCommonsCompressFileInput {
 
     @Test(expected=RuntimeException.class)
     public void testCloseThrowsRuntimeException() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             provider.close(); result = new IOException("close throws IOException.");
         }};
         
