@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
+import mockit.Expectations;
 import mockit.Verifications;
 
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -23,7 +23,7 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.embulk.decoder.CommonsCompressDecoderPlugin.PluginTask;
-import org.embulk.spi.util.FileInputInputStream;
+import org.embulk.util.file.FileInputInputStream;
 import org.junit.Test;
 
 public class TestCommonsCompressProvider {
@@ -32,7 +32,7 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCommonsCompressProviderAutoDetect() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             task.getFormat(); result = "";
         }};
 
@@ -44,7 +44,7 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCommonsCompressProviderSetFormat() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             task.getFormat(); result = "tar";
         }};
 
@@ -57,7 +57,7 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testOpenNextNoFile() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             files.nextFile(); result = false;
         }};
 
@@ -71,7 +71,7 @@ public class TestCommonsCompressProvider {
             @Mocked final ArchiveInputStreamIterator iterator,
             @Mocked final InputStream in) throws Exception {
         final CommonsCompressProvider forPartialMock = new CommonsCompressProvider(task, files);
-        new NonStrictExpectations(CommonsCompressProvider.class) {{
+        new Expectations(CommonsCompressProvider.class) {{
             forPartialMock.createInputStreamIterator((InputStream)any); result = iterator;
             files.nextFile(); result = true; result = false;
             task.getFormat(); result = "";
@@ -98,7 +98,7 @@ public class TestCommonsCompressProvider {
             @Mocked final ArchiveInputStreamIterator iterator,
             @Mocked final InputStream in) throws Exception {
         final CommonsCompressProvider forPartialMock = new CommonsCompressProvider(task, files);
-        new NonStrictExpectations(CommonsCompressProvider.class) {{
+        new Expectations(CommonsCompressProvider.class) {{
             forPartialMock.createInputStreamIterator((String[])any, 0, (InputStream)any); result = iterator;
             files.nextFile(); result = true; result = false;
             task.getFormat(); result = "tar";
@@ -124,7 +124,7 @@ public class TestCommonsCompressProvider {
     public void testOpenNextOneFileTwoStreams(@Mocked final ArchiveInputStreamIterator iterator,
             @Mocked final InputStream in1, @Mocked final InputStream in2) throws Exception {
         final CommonsCompressProvider forPartialMock = new CommonsCompressProvider(task, files);
-        new NonStrictExpectations(CommonsCompressProvider.class) {{
+        new Expectations(CommonsCompressProvider.class) {{
             forPartialMock.createInputStreamIterator((InputStream)any); result = iterator;
             files.nextFile(); result = true; result = false;
             task.getFormat(); result = "";
@@ -154,7 +154,7 @@ public class TestCommonsCompressProvider {
             @Mocked final InputStream in1,
             @Mocked final InputStream in2) throws Exception {
         final CommonsCompressProvider forPartialMock = new CommonsCompressProvider(task, files);
-        new NonStrictExpectations(CommonsCompressProvider.class) {{
+        new Expectations(CommonsCompressProvider.class) {{
             forPartialMock.createInputStreamIterator((InputStream)any); result = iterator1; result = iterator2;
             files.nextFile(); result = true; result = true; result = false;
             task.getFormat(); result = "";
@@ -243,7 +243,7 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCreateInputStreamConcatenatedGZ() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             task.getDecompressConcatenated(); result = true;
         }};
 
@@ -256,7 +256,7 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCreateInputStreamConcatenatedGZip() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             task.getDecompressConcatenated(); result = true;
         }};
 
@@ -269,7 +269,7 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCreateInputStreamConcatenatedBZip2() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             task.getDecompressConcatenated(); result = true;
         }};
 
@@ -282,7 +282,7 @@ public class TestCommonsCompressProvider {
 
     @Test
     public void testCreateInputStreamConcatenatedBZ2() throws Exception {
-        new NonStrictExpectations() {{
+        new Expectations() {{
             task.getDecompressConcatenated(); result = true;
         }};
 

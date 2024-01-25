@@ -13,11 +13,9 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.embulk.decoder.CommonsCompressDecoderPlugin.PluginTask;
-import org.embulk.spi.util.FileInputInputStream;
-import org.embulk.spi.util.InputStreamFileInput.Provider;
+import org.embulk.util.file.FileInputInputStream;
+import org.embulk.util.file.InputStreamFileInput.Provider;
 
 class CommonsCompressProvider implements Provider {
     private static final String AUTO_DETECT_FORMAT = "";
@@ -169,8 +167,7 @@ class CommonsCompressProvider implements Provider {
 
     CompressorInputStream createCompressorInputStream(String format,
             InputStream in) throws IOException, CompressorException {
-        CompressorStreamFactory factory = new CompressorStreamFactory();
-        factory.setDecompressConcatenated(decompressConcatenated);
+        CompressorStreamFactory factory = new CompressorStreamFactory(decompressConcatenated);
         if (CommonsCompressUtil.isAutoDetect(format)) {
             in = in.markSupported() ? in : new BufferedInputStream(in);
             try {
